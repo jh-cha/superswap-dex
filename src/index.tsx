@@ -11,15 +11,18 @@ import { ChainContextProvider } from "./context/chain-context";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
-const SERVER_URL = process.env.REACT_APP_SERVER_URL_MORALIS!
-const APP_ID = process.env.REACT_APP_ID_MORALIS!
+if(!process.env.REACT_APP_SERVER_URL_MORALIS || !process.env.REACT_APP_ID_MORALIS){
+  console.log("process.env Error.");
+}
+const SERVER_URL = process.env.REACT_APP_SERVER_URL_MORALIS!;
+const APP_ID = process.env.REACT_APP_ID_MORALIS!;
 
 root.render(
   <React.StrictMode>
-    <MoralisProvider
+    {/* <MoralisProvider
       serverUrl={SERVER_URL}
       appId={APP_ID}
-    >
+    > */}
       <ThemeContextProvider>
         <ChainContextProvider>
           <AuthContextProvider>
@@ -33,6 +36,6 @@ root.render(
           </AuthContextProvider>
         </ChainContextProvider>
       </ThemeContextProvider>
-    </MoralisProvider>
-  </React.StrictMode>,
+    {/* </MoralisProvider> */}
+  </React.StrictMode>
 );

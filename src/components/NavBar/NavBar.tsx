@@ -10,39 +10,50 @@ import useWindowWidth from "../../hooks/useWindowWidth";
 import MoreOptionsDropDown from "./MoreOptionsDropDown";
 import ThemeContext from "../../context/theme-context";
 import ChooseNetwork from "./ChooseNetwork";
-import { useMoralis, useNativeBalance } from "react-moralis";
+// import { useMoralis, useNativeBalance } from "react-moralis";
 import type { Chain } from "../../types";
 import LoginMethodModal from "../UI/LoginMethodModal";
 
 type NavBarProps = {
   loginModalOpen: boolean;
+  isAuthenticated: boolean;
+  isAuthenticating: boolean;
+
   setLoginModalOpen(val: boolean): void;
+  setisAuthenticated(val: boolean): void;
+  setisAuthenticating(val: boolean): void;
 };
 
-const NavBar = ({ loginModalOpen, setLoginModalOpen }: NavBarProps): JSX.Element => {
+const NavBar = ({loginModalOpen, isAuthenticated, isAuthenticating, setLoginModalOpen, setisAuthenticated, setisAuthenticating}: NavBarProps): JSX.Element => {
   const { t } = useTranslation();
   const windowWidth = useWindowWidth();
   const isDesktop = windowWidth >= 920;
   const isBigDesktop = windowWidth >= 1250;
   const [address, setAddress] = React.useState("");
   const [accBalance, setAccBalance] = React.useState<string | null>("");
-  const { user, isAuthenticated } = useMoralis();
+  // const { user, isAuthenticated } = useMoralis();
   const { isLight } = React.useContext(ThemeContext);
-  const { data: balance } = useNativeBalance();
+  // const { data: balance } = useNativeBalance();
   const [chooseNetwork, setChooseNetwork] = React.useState(false);
   const [activeChain, setActiveChain] = React.useState<Chain>("eth");
   const [showOptions, setShowOptions] = React.useState(false);
 
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      setAddress(user?.attributes.ethAddress);
-      setAccBalance(balance.formatted);
-    }
-  }, [isAuthenticated, user?.attributes, balance.formatted]);
+  // React.useEffect(() => {
+  //   if (isAuthenticated) {
+  //     setAddress(user?.attributes.ethAddress);
+  //     setAccBalance(balance.formatted);
+  //   }
+  // }, [isAuthenticated, user?.attributes, balance.formatted]);
 
   return (
     <>
-      {loginModalOpen && <LoginMethodModal close={setLoginModalOpen} />}
+      {loginModalOpen && <LoginMethodModal 
+        isAuthenticated={isAuthenticated}
+        isAuthenticating={isAuthenticating}
+        setisAuthenticated={setisAuthenticated}
+        setisAuthenticating={setisAuthenticating}
+        close={setLoginModalOpen}
+      />}
       <nav className="w-screen h-20 bg-transparent p-3 mb-28">
         <div
           className={`w-full h-full flex items-center ${!isDesktop && "justify-between"}`}
@@ -63,12 +74,12 @@ const NavBar = ({ loginModalOpen, setLoginModalOpen }: NavBarProps): JSX.Element
               {activeChain === "eth" && (
                 <img src={ethLogo} alt="token logo" className="h-6 w-6 mr-1" />
               )}
-              {activeChain === "polygon" && (
+              {/* {activeChain === "polygon" && (
                 <img src={maticLogo} alt="token logo" className="h-6 w-6 mr-1" />
               )}
               {activeChain === "bsc" && (
                 <img src={bscLogo} alt="token logo" className="h-6 w-6 mr-1" />
-              )}
+              )} */}
               {isBigDesktop && (
                 <span
                   className={`flex items-center mr-1 text-sm select-none ${
@@ -76,8 +87,8 @@ const NavBar = ({ loginModalOpen, setLoginModalOpen }: NavBarProps): JSX.Element
                   }`}
                 >
                   {activeChain === "eth" && t("choose-network.networks.eth")}
-                  {activeChain === "polygon" && t("choose-network.networks.matic")}
-                  {activeChain === "bsc" && t("choose-network.networks.bsc")}
+                  {/* {activeChain === "polygon" && t("choose-network.networks.matic")}
+                  {activeChain === "bsc" && t("choose-network.networks.bsc")} */}
                 </span>
               )}
               <ChevronDownIcon

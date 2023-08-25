@@ -11,20 +11,29 @@ import { useTranslation } from "react-i18next";
 
 type SwapFormProps = {
   tokenList: TokenList;
+  isAuthenticated: boolean;
+  isAuthenticating: boolean;
+  
   setLoginModalOpen(val: boolean): void;
   openTransactionModal(val: boolean): void;
   getTxHash(hash: string): void;
   getErrorMessage(message: string): void;
   setMadeTx(val: boolean): void;
+  setisAuthenticated(val: boolean): void;
+  setisAuthenticating(val: boolean): void;
 };
 
 const SwapForm = ({
   tokenList,
+  isAuthenticated,
+  isAuthenticating,
   setLoginModalOpen,
   openTransactionModal,
   getTxHash,
   getErrorMessage,
   setMadeTx,
+  setisAuthenticated,
+  setisAuthenticating,
 }: SwapFormProps): JSX.Element => {
   const { isLight } = React.useContext(ThemeContext);
   const { chain } = React.useContext(ChainContext);
@@ -151,7 +160,14 @@ const SwapForm = ({
             </div>
           </div>
         )}
-        <SwapButton setLoginModalOpen={setLoginModalOpen} trySwap={makeSwap} />
+        <SwapButton 
+          isAuthenticated={isAuthenticated}
+          isAuthenticating={isAuthenticating}
+          setLoginModalOpen={setLoginModalOpen} 
+          trySwap={makeSwap}
+          setisAuthenticated={setisAuthenticated}
+          setisAuthenticating={setisAuthenticating} 
+        />
       </div>
     </form>
   );

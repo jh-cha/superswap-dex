@@ -75,7 +75,7 @@ const ChooseNetwork = ({
         )}
       </div>
 
-      {/* Polygon */}
+      {/* Polygon
       <div
         className={`w-full cursor-pointer rounded-lg ${
           activeChain === "polygon" ? "mb-3 p-4 bg-gray-100" : "mb-4 p-2"
@@ -111,7 +111,7 @@ const ChooseNetwork = ({
       </div>
 
       {/* Bsc */}
-      <div
+      {/* <div
         className={`w-full cursor-pointer rounded-lg ${
           activeChain === "bsc" ? "mb-3 p-4 bg-gray-100" : "p-2"
         }`}
@@ -143,7 +143,7 @@ const ChooseNetwork = ({
             <ExternalLinkIcon className="w-4 h-4 text-gray-500" />
           </a>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

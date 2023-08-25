@@ -12,56 +12,97 @@ import ThemeContext from "../../context/theme-context";
 import { useMoralis } from "react-moralis";
 import { Oval } from "react-loader-spinner";
 import ChainContext from "../../context/chain-context";
+import { useState, useEffect } from "react";
+import Web3 from "web3";
+
+declare global {
+  interface Window {
+    ethereum: any;
+  }
+}
 
 type LoginMethodModalProps = {
+  isAuthenticated: boolean;
+  isAuthenticating: boolean;
+
+  setisAuthenticated(val: boolean): void;
+  setisAuthenticating(val: boolean): void;
   close(val: boolean): void;
 };
 
-const LoginMethodModal = ({ close }: LoginMethodModalProps): JSX.Element => {
+const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticated, setisAuthenticating, close }: LoginMethodModalProps): JSX.Element => {
   const { t } = useTranslation();
   const themeCtx = React.useContext(ThemeContext);
   const chainCtx = React.useContext(ChainContext);
   const [isCopying, setisCopying] = React.useState(false);
-  const [walletChosen, setWalletChosen] = React.useState("");
-  const { authenticate, isAuthenticated, logout, isAuthenticating, user } = useMoralis();
-  const address = user?.attributes.ethAddress;
-  const shortUserAddress =
-    String(user?.attributes.ethAddress).slice(0, 6) +
-    "..." +
-    String(user?.attributes.ethAddress).slice(-4);
+  const [account, setAccount] = useState("");
+  const [address, setAddress] = useState("");
+  const [shortAddress, setShortAddress] = useState("");
+  const infuraGoerliNetwork = process.env.REACT_APP_INFURA_URL!;
 
-  const loginMetamask = async () => {
-    console.log("yes");
-    if (!isAuthenticated) {
-      await authenticate({
-        provider: "metamask",
-        signingMessage: "Sign in with Superswap",
-        chainId: 0x1,
-      })
-        .then(function (user) {console.log(user);})
-        .catch(function (error) {
-          console.log(error);
-        });
-      setWalletChosen("Metamask");
+  // const address = user?.attributes.ethAddress;
+    // String(user?.attributes.ethAddress).slice(0, 6) +
+    // "..." +
+    // String(user?.attributes.ethAddress).slice(-4);
+
+    // useEffect(() => {
+    //   console.log('useEffect');
+    //   loginMetamask(); // 계정 설정
+    // }, []);
+  
+    // const getAccount = async () => {
+    //   console.log("getAccount");
+    //   if (typeof(window.ethereum) == "undefined") {
+    //       setAccount((""));
+    //   } 
+    //   console.log(window.ethereum);
+    // };
+    const getAccount = async () => {
+      console.log('getAccount');
+      console.log(window.ethereum);
+      if (typeof(window.ethereum) == "undefined") {
+        console.log('window.ethereum not exist');
+      } else {
+          const web3 = new Web3(new Web3.providers.HttpProvider(infuraGoerliNetwork));
+          console.log(web3); 
+          await web3.eth
+            .getAccounts((error, resultAccount) => {
+              console.log("!!@", error, resultAccount);
+              if(error) console.log("web3.eth.getAccounts Error");
+              else{
+                console.log(resultAccount[0]);
+                
+                if(resultAccount[0]){
+                  setAccount(resultAccount[0]);
+                  setShortAddress(
+                      String(resultAccount[0]).slice(0, 6) + "..." + String(resultAccount[0]).slice(-4)
+                  );
+                  setisAuthenticated(true);
+                  setisAuthenticating(false);
+                }
+              }
+            })
+      }
+    };
+
+    const logout = () => {
+      return "";
     }
-  };
 
-  const loginWC = async () => {
-    if (!isAuthenticated) {
-      await authenticate({
-        provider: "walletconnect",
-        signingMessage: "Sign in with Superswap",
-      })
-        .then(function (user) {
-          console.log(user!.get("ethAddress"));
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
-    setWalletChosen("WalletConnect");
-  };
-
+    const loginMetamask = async () => {
+      console.log("loginMetamask");
+    
+      const accounts = await window.ethereum.request({
+        method: "Connect Account",
+      });
+      setAccount(accounts);
+      setShortAddress(String(accounts).slice(0, 4) + "..." + String(accounts).slice(-2));
+  
+      setisAuthenticated(true);
+      setisAuthenticating(false);
+  
+    };
+  
   const handleCopy = () => {
     setisCopying(true);
     navigator.clipboard.writeText(address);
@@ -100,16 +141,6 @@ const LoginMethodModal = ({ close }: LoginMethodModalProps): JSX.Element => {
               <span>{t("login.metamask")}</span>
               <img src={metamask} alt="metamask" className="h-8 w-8" />
             </div>
-
-            <div
-              className={`w-full h-[73px] flex justify-between items-center py-2 px-4 rounded-2xl ${
-                themeCtx.isLight ? "bg-gray-100" : "bg-blue-800"
-              } cursor-pointer`}
-              onClick={loginWC}
-            >
-              <span>{t("login.wc")}</span>
-              <img src={wc} alt="wallet connect" className="h-8 w-8" />
-            </div>
           </div>
         )}
 
@@ -138,7 +169,7 @@ const LoginMethodModal = ({ close }: LoginMethodModalProps): JSX.Element => {
                     themeCtx.isLight ? "text-gray-500" : " text-white"
                   } p-2 font-medium text-xs md:text-base w-2/3`}
                 >
-                  {t("login.connected", { wallet: walletChosen })}
+                  {t("login.connected", { wallet: "meta2" })}
                 </span>
                 <span
                   className={`w-1/3 h-9 text-sm flex items-center justify-center rounded-2xl ${
@@ -152,7 +183,7 @@ const LoginMethodModal = ({ close }: LoginMethodModalProps): JSX.Element => {
                 </span>
               </div>
 
-              <div className="px-4 py-2 text-xl font-semibold">{shortUserAddress}</div>
+              <div className="px-4 py-2 text-xl font-semibold">{shortAddress}</div>
 
               <div
                 className={`p-4 text-xl font-semibold flex justify-between ${
@@ -177,28 +208,6 @@ const LoginMethodModal = ({ close }: LoginMethodModalProps): JSX.Element => {
                 {chainCtx.chain === "eth" && (
                   <a
                     href={`https://etherscan.io/address/${address}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm flex "
-                  >
-                    <ExternalLinkIcon className="h-4 w-4" />
-                    {t("login.view")}
-                  </a>
-                )}
-                {chainCtx.chain === "polygon" && (
-                  <a
-                    href={`https://polygonscan.com/address/${address}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm flex "
-                  >
-                    <ExternalLinkIcon className="h-4 w-4" />
-                    {t("login.view")}
-                  </a>
-                )}
-                {chainCtx.chain === "bsc" && (
-                  <a
-                    href={`https://bscscan.com/address/${address}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-sm flex "

@@ -1,30 +1,25 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import ThemeContext from "../../context/theme-context";
-import { useMoralis } from "react-moralis";
 
 type SwapButtonProps = {
   isAuthenticated: boolean;
-  isAuthenticating: boolean;
 
   setLoginModalOpen(val: boolean): void;
   trySwap(): void;
-  setisAuthenticated(val: boolean): void;
-  setisAuthenticating(val: boolean): void;
 };
 
-const SwapButton = ({ isAuthenticated, isAuthenticating, setisAuthenticated, setisAuthenticating, setLoginModalOpen, trySwap }: SwapButtonProps): JSX.Element => {
+const SwapButton = ({ isAuthenticated, setLoginModalOpen, trySwap }: SwapButtonProps): JSX.Element => {
   const { t } = useTranslation();
   const { isLight } = React.useContext(ThemeContext);
-  // const { isAuthenticated } = useMoralis();
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    // if (!isAuthenticated) {
-    //   setLoginModalOpen(true);
-    // } else if (isAuthenticated) {
-    //   trySwap();
-    // }
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+    } else if (isAuthenticated) {
+      trySwap();
+    }
   };
 
   return (

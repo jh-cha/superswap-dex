@@ -36,80 +36,48 @@ const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticate
   const chainCtx = React.useContext(ChainContext);
   const [isCopying, setisCopying] = React.useState(false);
   const [account, setAccount] = useState("");
-  const [address, setAddress] = useState("");
   const [shortAddress, setShortAddress] = useState("");
   const infuraGoerliNetwork = process.env.REACT_APP_INFURA_URL!;
 
-  // const address = user?.attributes.ethAddress;
-    // String(user?.attributes.ethAddress).slice(0, 6) +
-    // "..." +
-    // String(user?.attributes.ethAddress).slice(-4);
-
-    // useEffect(() => {
-    //   console.log('useEffect');
-    //   loginMetamask(); // 계정 설정
-    // }, []);
+  const logoutMetamask = async () => {
+    await window.ethereum.request({
+      // MetaMask에서 지원하는 연결 해제 메소드
+      method: "wallet_requestPermissions", 
+      params: [{ eth_accounts: {} }],
+    });
   
-    // const getAccount = async () => {
-    //   console.log("getAccount");
-    //   if (typeof(window.ethereum) == "undefined") {
-    //       setAccount((""));
-    //   } 
-    //   console.log(window.ethereum);
-    // };
-    const getAccount = async () => {
-      console.log('getAccount');
-      console.log(window.ethereum);
-      if (typeof(window.ethereum) == "undefined") {
-        console.log('window.ethereum not exist');
-      } else {
-          const web3 = new Web3(new Web3.providers.HttpProvider(infuraGoerliNetwork));
-          console.log(web3); 
-          await web3.eth
-            .getAccounts((error, resultAccount) => {
-              console.log("!!@", error, resultAccount);
-              if(error) console.log("web3.eth.getAccounts Error");
-              else{
-                console.log(resultAccount[0]);
-                
-                if(resultAccount[0]){
-                  setAccount(resultAccount[0]);
-                  setShortAddress(
-                      String(resultAccount[0]).slice(0, 6) + "..." + String(resultAccount[0]).slice(-4)
-                  );
-                  setisAuthenticated(true);
-                  setisAuthenticating(false);
-                }
-              }
-            })
-      }
-    };
+    setAccount("");
+    setShortAddress("");
+    setisAuthenticated(false);
+    setisAuthenticating(false);
+  }
 
-    const logout = () => {
-      return "";
-    }
-
-    const loginMetamask = async () => {
-      console.log("loginMetamask");
-    
+  const loginMetamask = async () => {
+    console.log("loginMetamask");
+  
+    try{
       const accounts = await window.ethereum.request({
-        method: "Connect Account",
+        // MetaMask에서 지원하는 account 연결 메소드
+        method: "eth_requestAccounts",
       });
       setAccount(accounts);
       setShortAddress(String(accounts).slice(0, 4) + "..." + String(accounts).slice(-2));
   
       setisAuthenticated(true);
       setisAuthenticating(false);
-  
-    };
+    }catch (error) {
+      console.error("loginMetamask Error", error);
+    }
+  };
   
   const handleCopy = () => {
     setisCopying(true);
-    navigator.clipboard.writeText(address);
+    navigator.clipboard.writeText(account);
     setTimeout(() => {
       setisCopying(false);
     }, 1000);
   };
+  
 
   return (
     <>
@@ -169,7 +137,7 @@ const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticate
                     themeCtx.isLight ? "text-gray-500" : " text-white"
                   } p-2 font-medium text-xs md:text-base w-2/3`}
                 >
-                  {t("login.connected", { wallet: "meta2" })}
+                  {t("login.connected", { wallet: "metamask" })}
                 </span>
                 <span
                   className={`w-1/3 h-9 text-sm flex items-center justify-center rounded-2xl ${
@@ -177,7 +145,7 @@ const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticate
                       ? "border border-orange-400 text-orange-400"
                       : "bg-gray-600 text-white"
                   } cursor-pointer`}
-                  onClick={logout}
+                  onClick={logoutMetamask}
                 >
                   {t("login.disconnect")}
                 </span>
@@ -207,7 +175,7 @@ const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticate
                 )}
                 {chainCtx.chain === "eth" && (
                   <a
-                    href={`https://etherscan.io/address/${address}`}
+                    href={`https://etherscan.io/address/${account}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-sm flex "

@@ -79,13 +79,6 @@ const MoreOptionsDropDown = ({ showOptions }: MoreOptionsDropDownProps): JSX.Ele
             <span className="select-none">{t("nav.language.english")}</span>
             {isSelected === "en" && <CheckIcon className="h-3 w-3" />}
           </button>
-          <button
-            className="w-full text-gray-400 flex justify-between text-sm outline-none cursor-pointer"
-            onClick={() => selectLanguage("es")}
-          >
-            <span className="select-none">{t("nav.language.spanish")}</span>
-            {isSelected === "es" && <CheckIcon className="h-3 w-3" />}
-          </button>
         </span>
       )}
     </span>

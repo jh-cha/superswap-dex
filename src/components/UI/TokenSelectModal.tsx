@@ -6,6 +6,9 @@ import { TokenDetails, TokenList } from "../../types";
 import ThemeContext from "../../context/theme-context";
 import type { SelectedToken } from "../../types";
 import { DebounceInput } from "react-debounce-input";
+import weth from "../../assets/images/weth.png";
+import anm from "../../assets/images/anemo.png";
+import jhc from "../../assets/images/jhcha.png";
 
 type TokenSelectModalProps = {
   initial?: boolean;
@@ -25,6 +28,37 @@ const TokenSelectModal = ({
   const themeCtx = React.useContext(ThemeContext);
   const [searchedValue, setSearchedValue] = React.useState("");
   const [customTokenList, setCustomTokenList] = React.useState<TokenDetails[]>(tokenList);
+
+  const initializeTokenSet = [
+    {
+      logoURI: weth,
+      name: 'Wrapped_Ether', 
+      symbol: 'WETH', 
+      tags: [],
+      address: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6', 
+      decimals: 18
+    },
+    {
+      logoURI: anm,
+      name: 'Custom_Anemo_Token', 
+      symbol: 'ANM', 
+      tags: [],
+      address: '', 
+      decimals: 18
+    },
+    {
+      logoURI: jhc,
+      name: 'Custom_Jhcha_Token', 
+      symbol: 'JHC', 
+      tags: [],
+      address: '', 
+      decimals: 18
+    }
+  ]
+  React.useEffect(() => {
+    tokenList = initializeTokenSet;
+    setCustomTokenList(initializeTokenSet);
+  }, []);
 
   React.useEffect(() => {
     if (searchedValue.slice(0, 2).includes("0x")) {

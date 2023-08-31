@@ -5,7 +5,8 @@
     "insufficient": "Insufficient {{token}} balance",
     "connect": "Connect Wallet",
     "placeholder": "0.0",
-    "estimated": "Estimated gas fees: "
+    "estimatedGasFee": "Estimated gas fees: ",
+    "estimatedRatio": "Estimated ratio: "
   },
   "nav": {
     "swap": "Swap",

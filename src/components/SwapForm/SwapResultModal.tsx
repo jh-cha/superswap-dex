@@ -20,13 +20,8 @@ const SwapResultModal = ({
   const { t } = useTranslation();
   const { isLight } = React.useContext(ThemeContext);
   const { chain } = React.useContext(ChainContext);
-  const [href, setHref] = React.useState("https://etherscan.io/tx/");
-
-  React.useEffect(() => {
-    if (chain === "eth") setHref("https://etherscan.io/tx/");
-    if (chain === "bsc") setHref("https://bscscan.com/tx");
-    if (chain === "polygon") setHref("https://polygonscan.com/tx/");
-  }, [chain]);
+  // const [mainnetHref, setMainnetHref] = React.useState("https://etherscan.io/tx/");
+  const [goerliHref, setGoerliHref] = React.useState("https://goerli.etherscan.io/tx/");
 
   return (
     <>
@@ -60,7 +55,7 @@ const SwapResultModal = ({
             </div>
             <a
               className={isLight ? styles.lightHeadings : styles.darkHeadings}
-              href={href + txHash}
+              href={goerliHref + txHash}
               target="_blank"
               rel="noreferrer"
             >

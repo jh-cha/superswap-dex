@@ -7,6 +7,8 @@ import ThemeContext from "../../context/theme-context";
 import type { SelectedToken } from "../../types";
 import { DebounceInput } from "react-debounce-input";
 import weth from "../../assets/images/weth.png";
+import anm from "../../assets/images/anemo.png";
+import jhc from "../../assets/images/jhcha.png";
 
 type TokenSelectModalProps = {
   initial?: boolean;
@@ -37,7 +39,7 @@ const TokenSelectModal = ({
       decimals: 18
     },
     {
-      logoURI: weth,
+      logoURI: anm,
       name: 'Custom_Anemo_Token', 
       symbol: 'ANM', 
       tags: [],
@@ -45,7 +47,7 @@ const TokenSelectModal = ({
       decimals: 18
     },
     {
-      logoURI: weth,
+      logoURI: jhc,
       name: 'Custom_Jhcha_Token', 
       symbol: 'JHC', 
       tags: [],

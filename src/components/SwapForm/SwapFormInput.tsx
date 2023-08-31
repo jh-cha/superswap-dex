@@ -47,15 +47,16 @@ const SwapFormInput = ({
     <div className="w-full h-20 rounded-2xl mb-2 bg-gray-100 flex flex-col items-center p-2">
       <div className="flex h-2/5 items-center w-full ">
         {
-          <span className="w-4/6 font-semibold bg-gray-100 text-slate-500 text-base focus:outline-none px-1 rounded-2xl ">
+          <span className="w-3/5 font-semibold bg-gray-100 text-slate-500 text-base focus:outline-none px-1 rounded-2xl ">
             {position}
           </span>
         }
         {
           balance && 
-          <span className="w-2/6 font-semibold text-slate-500 text-base rounded-2xl ">{`balance: ${balance}`}</span>
+          <span className="w-2/5 font-semibold text-slate-500 text-base rounded-2xl ">
+            {`balance: ${balance}`}
+          </span>
         }
-          
       </div>
       <div className="flex h-3/5 items-center w-full ">
         <DebounceInput

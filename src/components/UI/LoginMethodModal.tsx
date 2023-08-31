@@ -39,19 +39,6 @@ const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticate
   const [shortAddress, setShortAddress] = useState("");
   const infuraGoerliNetwork = process.env.REACT_APP_INFURA_URL!;
 
-  const logoutMetamask = async () => {
-    await window.ethereum.request({
-      // MetaMask에서 지원하는 연결 해제 메소드
-      method: "wallet_requestPermissions", 
-      params: [{ eth_accounts: {} }],
-    });
-  
-    setAccount("");
-    setShortAddress("");
-    setisAuthenticated(false);
-    setisAuthenticating(false);
-  }
-
   const loginMetamask = async () => {
     console.log("loginMetamask");
   
@@ -69,7 +56,20 @@ const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticate
       console.error("loginMetamask Error", error);
     }
   };
-  
+
+  const logoutMetamask = async () => {
+    await window.ethereum.request({
+      // MetaMask에서 지원하는 연결 해제 메소드
+      method: "wallet_requestPermissions",
+      params: [{ eth_accounts: {} }],
+    });
+
+    setAccount("");
+    setShortAddress("");
+    setisAuthenticated(false);
+    setisAuthenticating(false);
+  }
+
   const handleCopy = () => {
     setisCopying(true);
     navigator.clipboard.writeText(account);
@@ -77,7 +77,6 @@ const LoginMethodModal = ({ isAuthenticated, isAuthenticating, setisAuthenticate
       setisCopying(false);
     }, 1000);
   };
-  
 
   return (
     <>

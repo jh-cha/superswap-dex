@@ -2,17 +2,15 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDownIcon, DotsHorizontalIcon } from "@heroicons/react/solid";
 import ethLogo from "../../assets/images/eth.png";
-import maticLogo from "../../assets/images/matic.svg";
-import bscLogo from "../../assets/images/bsc.png";
 import NavLogo from "./NavLogo";
 import NavTabSwitcher from "./NavTabSwitcher";
 import useWindowWidth from "../../hooks/useWindowWidth";
 import MoreOptionsDropDown from "./MoreOptionsDropDown";
 import ThemeContext from "../../context/theme-context";
 import ChooseNetwork from "./ChooseNetwork";
-// import { useMoralis, useNativeBalance } from "react-moralis";
 import type { Chain } from "../../types";
 import LoginMethodModal from "../UI/LoginMethodModal";
+import Web3 from 'web3';
 
 type NavBarProps = {
   loginModalOpen: boolean;
@@ -30,20 +28,55 @@ const NavBar = ({loginModalOpen, isAuthenticated, isAuthenticating, setLoginModa
   const isDesktop = windowWidth >= 920;
   const isBigDesktop = windowWidth >= 1250;
   const [address, setAddress] = React.useState("");
-  const [accBalance, setAccBalance] = React.useState<string | null>("");
-  // const { user, isAuthenticated } = useMoralis();
+  const [balance, setBalance] = React.useState<string | null>("");
   const { isLight } = React.useContext(ThemeContext);
-  // const { data: balance } = useNativeBalance();
   const [chooseNetwork, setChooseNetwork] = React.useState(false);
   const [activeChain, setActiveChain] = React.useState<Chain>("eth");
   const [showOptions, setShowOptions] = React.useState(false);
+  
+  React.useEffect(() => {
+    getAccount();
+    getBalance();
+  }, [isAuthenticated]);
+  
+  const getAccount = async () => {
+    if (typeof(window.ethereum) === "undefined") {
+      console.log("window.ethereum is undefined");
+    }
+    else{
+      const web3 = new Web3(window.ethereum);
+      await web3
+        .eth
+        .getAccounts((error, result) => {
+          if (error) console.log(error);
+          else {
+              if (result[0] !== undefined) {
+                  setAddress(result[0]);
+              } else {
+                  setAddress("");
+              }
+          } 
+        });
+    }
+  };
+  
+  const getBalance = async () => {
+    if (typeof(window.ethereum) === "undefined") {
+      console.log("window.ethereum is undefined");
+    }else if (address) {
+      const web3 = new Web3(window.ethereum);
+      const balance = await web3.eth.getBalance(address);
+      let ethBalance = Number(web3.utils.fromWei(balance, "ether"));
+      setBalance(ethBalance.toFixed(3));
+    }
+  };
 
-  // React.useEffect(() => {
-  //   if (isAuthenticated) {
-  //     setAddress(user?.attributes.ethAddress);
-  //     setAccBalance(balance.formatted);
-  //   }
-  // }, [isAuthenticated, user?.attributes, balance.formatted]);
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      getAccount();
+      getBalance();
+    }
+  }, [isAuthenticated, address, balance]);
 
   return (
     <>
@@ -118,7 +151,7 @@ const NavBar = ({loginModalOpen, isAuthenticated, isAuthenticating, setLoginModa
                 className={isLight ? styles.connectLight : styles.connectDark}
                 onClick={() => setLoginModalOpen(true)}
               >
-                <span className="p-1 text-xs">{accBalance}</span>
+                <span className="p-1 text-xs">value: {balance}</span>
                 <span className={isLight ? styles.addressLight : styles.addressDark}>
                   {address.slice(0, 6) + "..." + address.slice(-4)}
                 </span>

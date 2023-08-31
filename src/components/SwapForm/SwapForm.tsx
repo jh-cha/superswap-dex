@@ -6,8 +6,9 @@ import ThemeContext from "../../context/theme-context";
 import type { TokenList } from "../../types";
 import type { SelectedToken } from "../../types";
 import ChainContext from "../../context/chain-context";
-import Moralis from "moralis";
 import { useTranslation } from "react-i18next";
+import {ethers} from "ethers";
+import {uniswapUtils, utils} from "../../utils/utils";
 
 type SwapFormProps = {
   tokenList: TokenList;
@@ -38,95 +39,117 @@ const SwapForm = ({
   const { isLight } = React.useContext(ThemeContext);
   const { chain } = React.useContext(ChainContext);
   const { t } = useTranslation();
-  const [firstToken, setFirstToken] = React.useState<SelectedToken>({ decimals: 0 });
-  const [secondToken, setSecondToken] = React.useState<SelectedToken>({ decimals: 0 });
-  const [firstAmount, setFirstAmount] = React.useState<number | undefined | string>();
-  const [secondAmount, setSecondAmount] = React.useState<number | undefined | string>();
+  const [firstToken, setFirstToken] = React.useState<SelectedToken>({name:"Anemo Token", symbol:"ANM", address:process.env.REACT_APP_ANM_ADDRESS, decimals: 0});
+  const [secondToken, setSecondToken] = React.useState<SelectedToken>({name:"Jhcha Token", symbol:"JHC", address:process.env.REACT_APP_JHC_ADDRESS, decimals: 0});
+  
+  const [firstAmount, setFirstAmount] = React.useState<number | undefined | string | object>();
+  const [secondAmount, setSecondAmount] = React.useState<number | undefined | string | object>();
+  const [firstBalance, setFirstBalance] = React.useState<number | undefined | string>();
+  const [secondBalance, setSecondBalance] = React.useState<number | undefined | string>();
   const [gas, setGas] = React.useState<number | undefined | string>();
 
+  const [provider, setProvider] = React.useState<any>();
+  const [signer, setSigner] = React.useState<any>();
+  const [signerAddress, setSignerAddress] = React.useState("");
+  const [transaction, setTransaction] = React.useState<any>();
+  const [ratio, setRatio] = React.useState<any>();
+  
+  const position = ["From", "To"];
+  
   React.useEffect(() => {
-    setFirstToken({
-      address: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      decimals: 18,
-    });
-  }, [chain]);
+    if(isAuthenticated){
+      onInitializeSwapForm();
+    }
+  }, [isAuthenticated]);
 
+  const onInitializeSwapForm = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    setProvider(provider);
+    const signer = provider.getSigner();
+    setSigner(signer);
+
+    signer.getAddress()
+        .then(address => {
+            setSignerAddress(address);
+        })
+    const firstBalance = await uniswapUtils.getTokenBalance(signer, firstToken.address);
+    setFirstBalance(utils.formatString(firstBalance));
+    const secondBalance = await uniswapUtils.getTokenBalance(signer, secondToken.address);
+    setSecondBalance(utils.formatString(secondBalance));
+    provider.estimateGas({});
+  };
+  
   const getQuoteFirst = async (val: string) => {
-    const amount = Number(Number(val) * 10 ** firstToken.decimals);
     setFirstAmount(val);
-    if (amount === 0 || amount === undefined) {
-      setFirstAmount("");
-      setSecondAmount("");
-      setGas(undefined);
-      setTimeout(() => {
-        if (secondAmount !== "") {
-          setSecondAmount("");
-        }
-      }, 300);
-    } else if (firstToken.address && secondToken.address) {
-      const quote = await Moralis.Plugins.oneInch.quote({
-        chain, // The blockchain you want to use (eth/bsc/polygon)
-        fromTokenAddress: firstToken.address, // The token you want to swap
-        toTokenAddress: secondToken.address, // The token you want to receive
-        amount,
-      });
-      setSecondAmount(quote.toTokenAmount / 10 ** quote.toToken.decimals);
-      setGas(quote.estimatedGas);
-    }
-  };
-
-  const getQuoteSecond = async (val: string) => {
-    const amount = Number(Number(val) * 10 ** secondToken.decimals);
-    setSecondAmount(val);
-    if (amount === 0 || amount === undefined) {
-      setFirstAmount("");
-      setSecondAmount("");
-      setGas(undefined);
-      setTimeout(() => {
-        if (firstAmount !== "") {
-          setFirstAmount("");
-        }
-      }, 300);
-    } else if (firstToken.address && secondToken.address) {
-      const quote = await Moralis.Plugins.oneInch.quote({
-        chain, // The blockchain you want to use (eth/bsc/polygon)
-        fromTokenAddress: secondToken.address, // The token you want to swap
-        toTokenAddress: firstToken.address, // The token you want to receive
-        amount,
-      });
-      setFirstAmount(quote.toTokenAmount / 10 ** quote.toToken.decimals);
-      setGas(quote.estimatedGas);
-    }
-  };
-
-  const makeSwap = async () => {
-    const amount = Number(Number(firstAmount) * 10 ** firstToken.decimals);
-    const address = await Moralis.User.current()?.get("ethAddress");
-
-    openTransactionModal(true);
 
     try {
-      const res = await Moralis.Plugins.oneInch.swap({
-        chain: chain,
-        fromTokenAddress: firstToken.address,
-        toTokenAddress: secondToken.address,
-        amount,
-        fromAddress: address,
-        slippage: 1,
-      });
-      openTransactionModal(true);
-      getTxHash(res.transactionHash);
-      setMadeTx(true);
+        await uniswapUtils.getQuote(
+            firstToken.symbol,
+            secondToken.symbol,
+            val,
+            10, //slippageAmount
+            Math.floor(Date.now() / 1000 + (5 * 60)), //deadline
+            signerAddress
+        ).then(data => {
+          setTransaction(data.transaction);
+          setGas(data.transaction.gasLimit);
+          setSecondAmount(data.quoteAmountOut);
+          setRatio(data.ratio);
+        })
     } catch (error) {
-      let message;
-      if (error instanceof Error) message = error.message;
-      else message = String((error as Error).message);
-      getErrorMessage(message);
+        let message;
+        if (error instanceof Error) message = error.message;
+        else message = String((error as Error).message);
+        getErrorMessage(message);
     }
 
+};
+
+const getQuoteSecond = async (val: string) => {
+    setSecondAmount(val);
+    try {
+        await uniswapUtils.getQuote(
+            secondToken.symbol,
+            firstToken.symbol,
+            val,
+            10, //slippageAmount
+            Math.floor(Date.now() / 1000 + (5 * 60)), //deadline
+            signerAddress,
+        ).then(data => {
+          setTransaction(data.transaction);
+          setGas(data.transaction.gasLimit);
+          setSecondAmount(data.quoteAmountOut);
+          setRatio(data.ratio);
+        })
+    } catch (error) {
+        let message;
+        if (error instanceof Error) message = error.message;
+        else message = String((error as Error).message);
+        getErrorMessage(message);
+    }
+  }
+
+  const makeSwap = async () => {
+    try{
+        const txHash = await uniswapUtils.executeSwap(transaction, signer, firstToken.address, firstAmount);
+        openTransactionModal(true);
+        getTxHash(txHash.hash);
+        setMadeTx(true);
+
+        const firstBalance = await uniswapUtils.getTokenBalance(signer, firstToken.address);
+        setFirstBalance(utils.formatString(firstBalance));
+        const secondBalance = await uniswapUtils.getTokenBalance(signer, secondToken.address);
+        setSecondBalance(utils.formatString(secondBalance));
+    } catch (error) {
+        let message;
+        if (error instanceof Error) message = error.message;
+        else message = String((error as Error).message);
+        getErrorMessage(message);
+    }
     setFirstAmount("");
     setSecondAmount("");
     setGas("");
+    setRatio("");
   };
 
   return (
@@ -142,6 +165,8 @@ const SwapForm = ({
           value={firstAmount}
           changeValue={setFirstAmount}
           changeCounterValue={setSecondAmount}
+          position={position[0]}
+          balance={firstBalance}
         />
         <SwapFormInput
           tokenList={tokenList}
@@ -151,22 +176,29 @@ const SwapForm = ({
           value={secondAmount}
           changeValue={setFirstAmount}
           changeCounterValue={setFirstAmount}
+          position={position[1]}
+          balance={secondBalance}
         />
-        {gas && (
+        {/* {gas && (
           <div className="w-full h-3 flex items-center justify-center py-4">
             <div className="w-[95%] h-full flex items-center justify-end text-sm text-white font-semibold">
-              {t("swap_form.estimated")}
+              {t("swap_form.estimatedGasFee")}
               {gas}
+            </div>
+          </div>
+        )} */}
+        {ratio && (
+          <div className="w-full h-3 flex items-center justify-center py-4">
+            <div className="w-[95%] h-full flex items-center justify-end text-sm text-white font-semibold">
+              {t("swap_form.estimatedRatio")}
+              {`1 ${secondToken.symbol} = ${ratio} ${firstToken.symbol}`}
             </div>
           </div>
         )}
         <SwapButton 
           isAuthenticated={isAuthenticated}
-          isAuthenticating={isAuthenticating}
           setLoginModalOpen={setLoginModalOpen} 
           trySwap={makeSwap}
-          setisAuthenticated={setisAuthenticated}
-          setisAuthenticating={setisAuthenticating} 
         />
       </div>
     </form>

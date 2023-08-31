@@ -1,8 +1,10 @@
 import React from "react";
 import { ChevronDownIcon } from "@heroicons/react/solid";
-import ethLogo from "../../assets/images/eth.png";
-import maticLogo from "../../assets/images/matic.svg";
-import bscLogo from "../../assets/images/bsc.png";
+import wethLogo from "../../assets/images/weth.png";
+import anmLogo from "../../assets/images/anemo.png";
+import jhcLogo from "../../assets/images/jhcha.png";
+// import maticLogo from "../../assets/images/matic.svg";
+// import bscLogo from "../../assets/images/bsc.png";
 import { useTranslation } from "react-i18next";
 import ThemeContext from "../../context/theme-context";
 import ChainContext from "../../context/chain-context";
@@ -32,7 +34,16 @@ const SwapFormChangeTokenButton = ({
       }`}
       onClick={() => select(true)}
     >
-      {initial && !selected.name && chainCtx.chain === "eth" && (
+      {selected.name === 'wrapped ether' && (
+        <img src={wethLogo} alt="" className="h-6 w-6" />
+      )}
+      {selected.name === 'Anemo Token' && (
+        <img src={anmLogo} alt="" className="h-6 w-6" />
+      )}
+      {selected.name === 'Jhcha Token' && (
+        <img src={jhcLogo} alt="" className="h-6 w-6" />
+      )}
+      {/* {initial && !selected.name && chainCtx.chain === "eth" && (
         <img src={ethLogo} alt="" className="h-6 w-6" />
       )}
       {initial && !selected.name && chainCtx.chain === "polygon" && (
@@ -40,8 +51,8 @@ const SwapFormChangeTokenButton = ({
       )}
       {initial && !selected.name && chainCtx.chain === "bsc" && (
         <img src={bscLogo} alt="" className="h-6 w-6" />
-      )}
-      {selected.name && <img src={selected.logo} alt="" className="h-6 w-6" />}
+      )} */}
+      {/* {selected.name && <img src={selected.logo} alt="" className="h-6 w-6" />} */}
       <span
         className={`flex items-center ${select.name && "pr-2 ml-1"} ${
           initial && "pr-2"

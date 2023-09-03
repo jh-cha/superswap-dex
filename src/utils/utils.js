@@ -35,7 +35,7 @@ export const uniswapUtils = {
         return ethers.utils.formatEther(bigNumberBalanace);
     },
 
-    getQuote: async (inputToken, outputToken, inputAmount, slippageAmount, deadline, walletAddress) => {
+    getQuote: async (inputToken, outputToken, inputAmount, slippageAmount, deadline, walletAddress, signer) => {
         const percentSlippage = new Percent(slippageAmount, 100);
         const wei = ethers.utils.parseUnits(inputAmount.toString(), 18);
         const currencyAmount = CurrencyAmount.fromRawAmount(tokenMap.get(inputToken), JSBI.BigInt(wei));
@@ -53,18 +53,23 @@ export const uniswapUtils = {
             TradeType.EXACT_INPUT, 
             options
         );
-        
+
+        const approveContract = new ethers.Contract(tokenMap.get(inputToken).address, Erc20ABI, signer);
+        const approveGasLimit = await approveContract.estimateGas.approve(V3_SWAP_ROUTER_02_ADDRESS, ethers.utils.parseUnits("10", 18));
+        const estimateGasLimit = ethers.utils.formatUnits(route.estimatedGasUsed.add(approveGasLimit, "gwei"));
+
         const transaction = {
             from: walletAddress,
             to: V3_SWAP_ROUTER_02_ADDRESS,
             value: BigNumber.from(route.methodParameters.value),
             data: route.methodParameters.calldata,
             gasPrice: BigNumber.from(route.gasPriceWei),
-            gasLimit: ethers.utils.hexlify(100000),
+            gasLimit: BigNumber.from(estimateGasLimit),
         };
 
         const quoteAmountOut = route.quote.toFixed(6);
         const ratio = (inputAmount / quoteAmountOut).toFixed(3);
+
         return {transaction, quoteAmountOut, ratio};
     },
 
@@ -81,7 +86,7 @@ export const uniswapUtils = {
         const tx = await signer.sendTransaction(transaction);
         await tx.wait();
         return tx;
-    }
+    },
 }
 
 export const utils = {
@@ -91,7 +96,7 @@ export const utils = {
         if (parts.length === 2) {
             const integerPart = parts[0];
             const decimalPart = parts[1];
-            const truncatedDecimal = decimalPart.substr(0, 3); // 최대 3자리까지 표시
+            const truncatedDecimal = decimalPart.substr(0, 3);
             return `${integerPart}.${truncatedDecimal}...`;
         } else {
             return inputString;

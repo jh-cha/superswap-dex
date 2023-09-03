@@ -76,7 +76,7 @@ const SwapForm = ({
     setFirstBalance(utils.formatString(firstBalance));
     const secondBalance = await uniswapUtils.getTokenBalance(signer, secondToken.address);
     setSecondBalance(utils.formatString(secondBalance));
-    provider.estimateGas({});
+    // provider.estimateGas({});
   };
   
   const getQuoteFirst = async (val: string) => {
@@ -89,10 +89,11 @@ const SwapForm = ({
             val,
             10, //slippageAmount
             Math.floor(Date.now() / 1000 + (5 * 60)), //deadline
-            signerAddress
+            signerAddress,
+            signer
         ).then(data => {
           setTransaction(data.transaction);
-          setGas(data.transaction.gasLimit);
+          setGas(data.transaction.gasLimit.toString());
           setSecondAmount(data.quoteAmountOut);
           setRatio(data.ratio);
         })
@@ -117,7 +118,7 @@ const getQuoteSecond = async (val: string) => {
             signerAddress,
         ).then(data => {
           setTransaction(data.transaction);
-          setGas(data.transaction.gasLimit);
+          setGas(data.transaction.gasLimit.toString());
           setSecondAmount(data.quoteAmountOut);
           setRatio(data.ratio);
         })
@@ -130,6 +131,29 @@ const getQuoteSecond = async (val: string) => {
   }
 
   const makeSwap = async () => {
+    try{
+        const txHash = await uniswapUtils.executeSwap(transaction, signer, firstToken.address, firstAmount);
+        openTransactionModal(true);
+        getTxHash(txHash.hash);
+        setMadeTx(true);
+
+        const firstBalance = await uniswapUtils.getTokenBalance(signer, firstToken.address);
+        setFirstBalance(utils.formatString(firstBalance));
+        const secondBalance = await uniswapUtils.getTokenBalance(signer, secondToken.address);
+        setSecondBalance(utils.formatString(secondBalance));
+    } catch (error) {
+        let message;
+        if (error instanceof Error) message = error.message;
+        else message = String((error as Error).message);
+        getErrorMessage(message);
+    }
+    setFirstAmount("");
+    setSecondAmount("");
+    setGas("");
+    setRatio("");
+  };
+
+  const getEstimateGasFee = async () => {
     try{
         const txHash = await uniswapUtils.executeSwap(transaction, signer, firstToken.address, firstAmount);
         openTransactionModal(true);
@@ -179,14 +203,14 @@ const getQuoteSecond = async (val: string) => {
           position={position[1]}
           balance={secondBalance}
         />
-        {/* {gas && (
+        {gas && (
           <div className="w-full h-3 flex items-center justify-center py-4">
             <div className="w-[95%] h-full flex items-center justify-end text-sm text-white font-semibold">
               {t("swap_form.estimatedGasFee")}
-              {gas}
+              {`${gas} Gwei`}
             </div>
           </div>
-        )} */}
+        )}
         {ratio && (
           <div className="w-full h-3 flex items-center justify-center py-4">
             <div className="w-[95%] h-full flex items-center justify-end text-sm text-white font-semibold">

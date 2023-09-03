@@ -207,7 +207,7 @@ const getQuoteSecond = async (val: string) => {
           <div className="w-full h-3 flex items-center justify-center py-4">
             <div className="w-[95%] h-full flex items-center justify-end text-sm text-white font-semibold">
               {t("swap_form.estimatedGasFee")}
-              {`${gas} Gwei`}
+              {`Estimated Gas Fee = ${gas} Gwei`}
             </div>
           </div>
         )}

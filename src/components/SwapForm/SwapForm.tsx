@@ -76,7 +76,6 @@ const SwapForm = ({
     setFirstBalance(utils.formatString(firstBalance));
     const secondBalance = await uniswapUtils.getTokenBalance(signer, secondToken.address);
     setSecondBalance(utils.formatString(secondBalance));
-    // provider.estimateGas({});
   };
   
   const getQuoteFirst = async (val: string) => {
@@ -153,29 +152,6 @@ const getQuoteSecond = async (val: string) => {
     setRatio("");
   };
 
-  const getEstimateGasFee = async () => {
-    try{
-        const txHash = await uniswapUtils.executeSwap(transaction, signer, firstToken.address, firstAmount);
-        openTransactionModal(true);
-        getTxHash(txHash.hash);
-        setMadeTx(true);
-
-        const firstBalance = await uniswapUtils.getTokenBalance(signer, firstToken.address);
-        setFirstBalance(utils.formatString(firstBalance));
-        const secondBalance = await uniswapUtils.getTokenBalance(signer, secondToken.address);
-        setSecondBalance(utils.formatString(secondBalance));
-    } catch (error) {
-        let message;
-        if (error instanceof Error) message = error.message;
-        else message = String((error as Error).message);
-        getErrorMessage(message);
-    }
-    setFirstAmount("");
-    setSecondAmount("");
-    setGas("");
-    setRatio("");
-  };
-
   return (
     <form className={isLight ? styles.light : styles.dark}>
       <div className="w-full rounded-3xl p-2 select-none">
@@ -206,7 +182,6 @@ const getQuoteSecond = async (val: string) => {
         {gas && (
           <div className="w-full h-3 flex items-center justify-center py-4">
             <div className="w-[95%] h-full flex items-center justify-end text-sm text-white font-semibold">
-              {t("swap_form.estimatedGasFee")}
               {`Estimated Gas Fee = ${gas} Gwei`}
             </div>
           </div>

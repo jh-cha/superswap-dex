@@ -56,17 +56,19 @@ export const uniswapUtils = {
 
         const approveContract = new ethers.Contract(tokenMap.get(inputToken).address, Erc20ABI, signer);
         const approveGasLimit = await approveContract.estimateGas.approve(V3_SWAP_ROUTER_02_ADDRESS, ethers.utils.parseUnits("10", 18));
-        const estimateGasLimit = ethers.utils.formatUnits(route.estimatedGasUsed.add(approveGasLimit, "gwei"));
-
+        const uniswapGasLimit = route.estimatedGasUsed;
+        const estimateGasLimit = approveGasLimit.add(uniswapGasLimit);
+        
         const transaction = {
             from: walletAddress,
             to: V3_SWAP_ROUTER_02_ADDRESS,
             value: BigNumber.from(route.methodParameters.value),
             data: route.methodParameters.calldata,
             gasPrice: BigNumber.from(route.gasPriceWei),
-            gasLimit: BigNumber.from(estimateGasLimit),
+            gasLimit: estimateGasLimit,
         };
 
+        console.log(transaction);
         const quoteAmountOut = route.quote.toFixed(6);
         const ratio = (inputAmount / quoteAmountOut).toFixed(3);
 
@@ -75,10 +77,10 @@ export const uniswapUtils = {
 
     executeSwap: async (transaction, signer, contractAddress, inputAmount) => {
         const contract = new ethers.Contract(contractAddress, Erc20ABI, signer);
-        const approvalAmount = ethers.utils.parseUnits("10", 18);
+        const approvalAmount = inputAmount * ethers.utils.parseUnits("10", 18);
         const allowance = await contract.allowance(await signer.getAddress(), V3_SWAP_ROUTER_02_ADDRESS);
 
-        if (allowance < (inputAmount * ethers.utils.parseUnits("10", 18))) {
+        if (allowance < approvalAmount) {
             const approveTx = await contract.connect(signer).approve(V3_SWAP_ROUTER_02_ADDRESS, approvalAmount);
             await approveTx.wait();
         }

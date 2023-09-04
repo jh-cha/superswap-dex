@@ -2,7 +2,7 @@
 
 A multi-chain decentralised exchange(DEX) where users can authenticate themselves using Metamask, across web and mobile in order to swap tokens on the blockchain.
 
-![image](https://github.com/jh-cha/superswap-dex-front/assets/140405044/71912807-29d3-4bc8-a81c-5d3cfd17502f)
+![image](https://github.com/jh-cha/superswap-dex-front/assets/140405044/482b6323-dfcf-4295-b534-dc7c7abb310b)
 
 
 ## Stack
